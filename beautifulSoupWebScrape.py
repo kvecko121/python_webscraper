@@ -27,6 +27,4 @@ for link in soup2.find_all("a"):
     link_url = base_url + link['href']
     print(link_url)
 
-# link1, link2, link3 = soup2.find_all("a")
-# print(link1['href'] ,"\n",link2['href'],"\n",link3['href'])
 
