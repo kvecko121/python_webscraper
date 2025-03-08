@@ -23,6 +23,8 @@ for page in pages:
 #links for apartments
 links = []
 
+links_file = open("links.txt","a")
+
 #cycle through all urls 
 page_counter = 1
 link_counter = 1
@@ -33,7 +35,10 @@ for url in urls:
     #cycle through all links to apartments 
     for link in soup2.find_all("a", class_="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineAlways css-1s6ohwi"):
         links.append(base_url+link['href'])
+        links_file.write(base_url+link['href']+'\n')
         print("page: ",page_counter,", link: ",link_counter)
         link_counter = link_counter + 1
     page_counter = page_counter + 1
+
+
 print(len(links))
