@@ -41,4 +41,4 @@ for url in urls:
     page_counter = page_counter + 1
 
 
-print(len(links))
+print(len(links)) #3772
