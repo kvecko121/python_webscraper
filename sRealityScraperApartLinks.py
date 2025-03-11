@@ -23,7 +23,7 @@ for page in pages:
 #links for apartments
 links = []
 
-links_file = open("links.txt","a")
+links_file = open("links2.txt","a")
 
 #cycle through all urls 
 page_counter = 1
