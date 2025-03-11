@@ -16,7 +16,7 @@ for i in range(3772):
     #print("Status: ",i+1)
 
 # print("links: ",len(links))
-url = links[244]
+url = links[1]
 page = urlopen(url)
 html = page.read().decode("utf-8")
 soup = BeautifulSoup(html, "html.parser")
@@ -42,14 +42,24 @@ if parts[7].split("-")[1] == "dolni":
     location = parts[7].split("-")[1] +"_"+ parts[7].split("-")[2]
 if  parts[7].split("-")[1] == "horni":
     location = parts[7].split("-")[1] +"_"+ parts[7].split("-")[2]
+if  parts[7].split("-")[1] == "praha":
+    location = parts[7].split("-")[1] +"_"+ parts[7].split("-")[2]
 else:
     location = parts[7].split("-")[1]
 
 print(location)
 
 #SIZE SCRIPT
-size_raw = soup.find("h1", class_="MuiTypography-root MuiTypography-body1 css-i4m05l").replace('\u011b', '')
-print(size_raw)
+size_raw = soup.find("h1", class_="MuiTypography-root MuiTypography-body1 css-i4m05l")
+size_text = size_raw.text.replace('\u011b', '')
+size_clean = re.search(r'(\d+)\s*m²', size_text).group(1)
+size = int(size_clean)
+print(size)
+
+#ENERGY-LEVEL SCRIPT
+energy_raw = soup.find("p", class_="MuiTypography-root MuiTypography-body1 css-sdwmvq")
+energy_text = energy_raw.text
+print(energy_text)
 
 #looping through links and extracting data
 # data = []
