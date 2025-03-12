@@ -65,42 +65,71 @@ def get_location(url):
     return location
 
 #LOCATION SCRIPT
-url_copy_location = url
-parts = url_copy_location.split("/")
-if parts[7].split("-")[1] == "dolni":
-    location = parts[7].split("-")[1] +"_"+ parts[7].split("-")[2]
-if  parts[7].split("-")[1] == "horni":
-    location = parts[7].split("-")[1] +"_"+ parts[7].split("-")[2]
-if  parts[7].split("-")[1] == "praha":
-    location = parts[7].split("-")[1] +"_"+ parts[7].split("-")[2]
-else:
-    location = parts[7].split("-")[1]
+# url_copy_location = url
+# parts = url_copy_location.split("/")
+# if parts[7].split("-")[1] == "dolni":
+#     location = parts[7].split("-")[1] +"_"+ parts[7].split("-")[2]
+# if  parts[7].split("-")[1] == "horni":
+#     location = parts[7].split("-")[1] +"_"+ parts[7].split("-")[2]
+# if  parts[7].split("-")[1] == "praha":
+#     location = parts[7].split("-")[1] +"_"+ parts[7].split("-")[2]
+# else:
+#     location = parts[7].split("-")[1]
 
-print("location:",location)
+# print("location:",location)
+
+#SIZE METHOD
+def get_size(soup):
+    size_raw = soup.find("h1", class_="MuiTypography-root MuiTypography-body1 css-i4m05l")
+    size_text = size_raw.text.replace('\u011b', '')
+    size_clean = re.search(r'(\d+)\s*m²', size_text).group(1)
+    size = int(size_clean)
+    return size
 
 #SIZE SCRIPT
-size_raw = soup.find("h1", class_="MuiTypography-root MuiTypography-body1 css-i4m05l")
-size_text = size_raw.text.replace('\u011b', '')
-size_clean = re.search(r'(\d+)\s*m²', size_text).group(1)
-size = int(size_clean)
-print("size:",size)
+# size_raw = soup.find("h1", class_="MuiTypography-root MuiTypography-body1 css-i4m05l")
+# size_text = size_raw.text.replace('\u011b', '')
+# size_clean = re.search(r'(\d+)\s*m²', size_text).group(1)
+# size = int(size_clean)
+# print("size:",size)
+
+#ENERGY-LEVEL METHOD
+def get_energy_level(soup):
+    energy_raw = soup.find("p", class_="MuiTypography-root MuiTypography-body1 css-sdwmvq")
+    if energy_raw is not None:
+        energy_text = energy_raw.text
+    else:
+        energy_text = None
+    return energy_text
 
 #ENERGY-LEVEL SCRIPT
-energy_raw = soup.find("p", class_="MuiTypography-root MuiTypography-body1 css-sdwmvq")
-if energy_raw is not None:
-    energy_text = energy_raw.text
-else:
-    energy_text = None
-print("energy level:",energy_text)
+# energy_raw = soup.find("p", class_="MuiTypography-root MuiTypography-body1 css-sdwmvq")
+# if energy_raw is not None:
+#     energy_text = energy_raw.text
+# else:
+#     energy_text = None
+# print("energy level:",energy_text)
+
+#FLOOR METHOD
+def get_floor(soup):
+    props = soup.find_all("dt", class_="MuiTypography-root MuiTypography-body1 css-hmrxrl")
+    for prop in props:
+        if prop.text == "Stavba:":
+            floor_raw = prop.find_next_sibling("dd")
+            floor_text = floor_raw.text
+            floor_clean = re.search(r'\d+', floor_text).group()
+
+    return int(floor_clean)      
+
 
 #FLOOR SCRIPT
-props = soup.find_all("dt", class_="MuiTypography-root MuiTypography-body1 css-hmrxrl")
-for prop in props:
-    if prop.text == "Stavba:":
-        floor_raw = prop.find_next_sibling("dd")
-        floor_text = floor_raw.text
-        floor_clean = re.search(r'\d+', floor_text).group()
-        print("floor:",floor_clean)
+# props = soup.find_all("dt", class_="MuiTypography-root MuiTypography-body1 css-hmrxrl")
+# for prop in props:
+#     if prop.text == "Stavba:":
+#         floor_raw = prop.find_next_sibling("dd")
+#         floor_text = floor_raw.text
+#         floor_clean = re.search(r'\d+', floor_text).group()
+#         print("floor:",floor_clean)
 
 #FLOOR-TOTAL SCRIPT
 # props = soup.find_all("dt", class_="MuiTypography-root MuiTypography-body1 css-hmrxrl")
@@ -121,6 +150,23 @@ for prop in props:
 #         if len(condition_parts) > 1:
 #             condition_clean = condition_parts[1].replace('\u00E9', 'e').replace('\u011b', 'e').replace('\u00ED', 'i').replace('\u0161', 's').replace('\u00FD', 'y')
 #             print("condition:", condition_clean)
+
+#CONDITION METHOD
+def get_condition(soup):
+    conditions = ["Ve velmi dobrem stavu", "V dobrem stavu", "Ve spatnem stavu", "Ve vystavbe", "Projekt", "Novostavba", "K demolici", "Pred rekonstrukci", "Po rekonstrukci", "V rekonstrukci"]
+    props = soup.find_all("dt", class_="MuiTypography-root MuiTypography-body1 css-hmrxrl")
+    for prop in props:
+        if prop.text == "Stavba:":
+            condition_raw = prop.find_next_sibling("dd")
+            condition_text = normalize(condition_raw.text)
+            # print("condition text:", condition_text)
+            columns = condition_text.split(",")
+            for column in columns:
+                column_clean = column.strip()
+                if column_clean in conditions:
+                    condition = column_clean
+    return condition
+
 
 #CONDITION SCRIPT 2
 conditions = ["Ve velmi dobrem stavu", "V dobrem stavu", "Ve spatnem stavu", "Ve vystavbe", "Projekt", "Novostavba", "K demolici", "Pred rekonstrukci", "Po rekonstrukci", "V rekonstrukci"]
@@ -317,4 +363,4 @@ for link in links:
     soup = BeautifulSoup(html, "html.parser")
     price = get_price(soup)
     rooms = get_rooms(url)
-    
+    location = get_location(url)
