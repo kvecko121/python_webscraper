@@ -49,7 +49,10 @@ def get_location(url):
     if  parts[7].split("-")[1] == "horni":
         location = parts[7].split("-")[1] +"_"+ parts[7].split("-")[2]
     if  parts[7].split("-")[1] == "praha":
-        location = parts[7].split("-")[1] +"_"+ parts[7].split("-")[2]
+        if parts[7].split("-")[2].isdigit(): 
+            location = parts[7].split("-")[1] +"_"+ parts[7].split("-")[2]
+        else:
+            location = parts[7].split("-")[1]
     else:
         location = parts[7].split("-")[1]
 
@@ -161,6 +164,17 @@ for link in links:
 
 print(rooms_unique)
 
+#testing unique locations 
+location_unique = []
+for link in links:
+    # page = urlopen(link)
+    # html = page.read().decode("utf-8")
+    # soup = BeautifulSoup(html, "html.parser")
+    location = get_location(link)
+    if location not in location_unique:
+        location_unique.append(location)
+
+print(location_unique)
 
 
 
@@ -182,6 +196,8 @@ default_row = {'price': 0,
                '5+kk': 0,
                '6-a-vice': 0,
                'atypicky': 0,
+               'chodov': 0,
+               'hlubocepy', 'smichov', 'vysocany', 'zizkov', 'vinohrady', 'modrany', 'nove', 'liben', 'vrsovice', 'cakovice', 'krc', 'nusle', 'praha', 'radlice', 'satalice', 'haje', 'horni', 'branik', 'holesovice', 'dolni', 'stodulky', 'mala', 'praha_1', 'kosire', 'troja', 'brevnov', 'praha_8', 'kyje', 'vysehrad', 'karlin', 'kbely', 'pitkovice', 'sobin', 'cerny', 'treboradice', 'cimice', 'strizkov', 'praha_9', 'letnany', 'kobylisy', 'dejvice', 'praha_14', 'bubenec', 'radotin', 'ujezd', 'suchdol', 'hostavice', 'praha_5', 'podoli', 'zlicin', 'veleslavin', 'michle', 'hostivar', 'strasnice', 'petrovice', 'praha_4', 'zbraslav', 'stare', 'bohnice', 'kolovraty', 'kamyk', 'trebonice', 'zabehlice', 'ruzyne', 'jinonice', 'malesice', 'motol', 'prosek', 'vokovice', 'repy', 'hloubetin', 'lochkov', 'lipence', 'liboc', 'josefov', 'hrdlorezy', 'slivenec', 'sterboholy', 'praha_7', 'hodkovicky', 'cholupice', 'miskovice', 'uhrineves', 'stresovice', 'dubec', 'lhotka', 'velka', 'pisnice', 'klanovice', 'dablice', 'vinor', 'holyne', 'praha_10', 'libus', 'hajek', 'praha_2', 'reporyje', 'seberov', 'bechovice', 'kolodeje', 'hradcany', 'praha_6', 'tocna', 'kralovice', 'kunratice', 'praha_11'
                }
 # data row test 
 page = urlopen(url)
