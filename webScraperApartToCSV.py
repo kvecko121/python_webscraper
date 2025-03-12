@@ -501,11 +501,11 @@ def read_data(links):
         
     return data
 
-links_test = links[:10]
+links_test = links[3000:3500]
 data_test = read_data(links_test)
 # print(data_test)
 
-with open('apt_data_first10_test.csv', 'w', newline='') as csvfile:
+with open('apt_data_500_batch7.csv', 'w', newline='') as csvfile:
     fieldnames = ['price',
                 '1+1',
                 '1+kk',
