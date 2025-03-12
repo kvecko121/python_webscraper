@@ -169,8 +169,8 @@ print(rooms_unique)
 
 
 data = []
-default_row = {price: 0,
-               1+1: 0,
+default_row = {'price': 0,
+               '1+1': 0,
                '1+kk': 0,
                '2+1': 0,
                '2+kk': 0,
