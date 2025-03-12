@@ -53,7 +53,8 @@ def get_location(url):
         if parts[7].split("-")[2].isdigit(): 
             location = parts[7].split("-")[1] +"_"+ parts[7].split("-")[2]
         else:
-            location = parts[7].split("-")[1]
+            #location = parts[7].split("-")[1]
+            raise ValueError("Location is not in the right format")
     else:
         location = parts[7].split("-")[1]
 
@@ -68,14 +69,35 @@ def get_size(soup):
     size = int(size_clean)
     return size
 
+#PRICE PER SQ METRE METHOD
+def get_price_per_m2(soup):
+    price = get_price(soup)
+    size = get_size(soup) 
+    return round(price/size)
+
+
 #ENERGY-LEVEL METHOD
 def get_energy_level(soup):
     energy_raw = soup.find("p", class_="MuiTypography-root MuiTypography-body1 css-sdwmvq")
     if energy_raw is not None:
         energy_text = energy_raw.text
+        if energy_text == "A":
+            energy_level = 1
+        elif energy_text == "B":
+            energy_level = 2
+        elif energy_text == "C":
+            energy_level = 3
+        elif energy_text == "D":
+            energy_level = 4
+        elif energy_text == "E":
+            energy_level = 5
+        elif energy_text == "F":
+            energy_level = 6
+        elif energy_text == "G":
+            energy_level = 7
     else:
-        energy_text = None
-    return energy_text
+        energy_level = None
+    return energy_level
 
 
 #FLOOR METHOD
@@ -85,9 +107,12 @@ def get_floor(soup):
         if prop.text == "Stavba:":
             floor_raw = prop.find_next_sibling("dd")
             floor_text = floor_raw.text
-            floor_clean = re.search(r'\d+', floor_text).group()
-
-    return int(floor_clean)      
+            try:
+                floor_clean = re.search(r'\d+', floor_text).group()
+                floor = int(floor_clean)
+            except AttributeError:
+                floor = None
+    return floor      
 
 
 
@@ -126,7 +151,7 @@ def get_build_type(soup):
 
 #FEATURES METHOD
 def get_features(soup):
-    features = ["Balkon", "Lodzie","Zahrada", "Terasa", "Parkovaci stani", "Vytah", "Sklep", "Garaz", "Zarizeno", "Nearizeno", "Castecne zarizeno", "Bezbarierovy pristup"]
+    features = ["Balkon", "Lodzie","Zahrada", "Terasa", "Parkovaci stani", "Vytah", "Sklep", "Garaz", "Zarizeno", "Nezarizeno", "Castecne zarizeno", "Bezbarierovy pristup"]
     features_result = []
     props = soup.find_all("div", class_="MuiBox-root css-1b7capf")
     for prop in props:
@@ -202,248 +227,529 @@ def get_proximity(soup, place):
 
 # print(location_unique)
 # conditions = ["Ve velmi dobrem stavu", "V dobrem stavu", "Ve spatnem stavu", "Ve vystavbe", "Projekt", "Novostavba", "K demolici", "Pred rekonstrukci", "Po rekonstrukci", "V rekonstrukci"]
-# features = ["Balkon", "Lodzie","Zahrada", "Terasa", "Parkovaci stani", "Vytah", "Sklep", "Garaz", "Zarizeno", "Nearizeno", "Castecne zarizeno", "Bezbarierovy pristup"]
+# features = ["Balkon", "Lodzie","Zahrada", "Terasa", "Parkovaci stani", "Vytah", "Sklep", "Garaz", "Zarizeno", "Nezarizeno", "Castecne zarizeno", "Bezbarierovy pristup"]
 # for i in features:
 #     print("'"+i+"'"+": 0,")
 
 
 
 
-data = []
-default_row = {'price': 0,
-               '1+1': 0,
-               '1+kk': 0,
-               '2+1': 0,
-               '2+kk': 0,
-               '3+1': 0,
-               '3+kk': 0,
-               '4+1': 0,
-               '4+kk': 0,
-               '5+1': 0,
-               '5+kk': 0,
-               '6-a-vice': 0,
-               'atypicky': 0,
-               'chodov': 0,
-                'hlubocepy': 0,
-                'smichov': 0,
-                'vysocany': 0,
-                'zizkov': 0,
-                'vinohrady': 0,
-                'modrany': 0,
-                'nove': 0,
-                'liben': 0,
-                'vrsovice': 0,
-                'cakovice': 0,
-                'krc': 0,
-                'nusle': 0,
-                'praha': 0,
-                'radlice': 0,
-                'satalice': 0,
-                'haje': 0,
-                'horni': 0,
-                'branik': 0,
-                'holesovice': 0,
-                'dolni': 0,
-                'stodulky': 0,
-                'mala': 0,
-                'praha_1': 0,
-                'kosire': 0,
-                'troja': 0,
-                'brevnov': 0,
-                'praha_8': 0,
-                'kyje': 0,
-                'vysehrad': 0,
-                'karlin': 0,
-                'kbely': 0,
-                'pitkovice': 0,
-                'sobin': 0,
-                'cerny': 0,
-                'treboradice': 0,
-                'cimice': 0,
-                'strizkov': 0,
-                'praha_9': 0,
-                'letnany': 0,
-                'kobylisy': 0,
-                'dejvice': 0,
-                'praha_14': 0,
-                'bubenec': 0,
-                'radotin': 0,
-                'ujezd': 0,
-                'suchdol': 0,
-                'hostavice': 0,
-                'praha_5': 0,
-                'podoli': 0,
-                'zlicin': 0,
-                'veleslavin': 0,
-                'michle': 0,
-                'hostivar': 0,
-                'strasnice': 0,
-                'petrovice': 0,
-                'praha_4': 0,
-                'zbraslav': 0,
-                'stare': 0,
-                'bohnice': 0,
-                'kolovraty': 0,
-                'kamyk': 0,
-                'trebonice': 0,
-                'zabehlice': 0,
-                'ruzyne': 0,
-                'jinonice': 0,
-                'malesice': 0,
-                'motol': 0,
-                'prosek': 0,
-                'vokovice': 0,
-                'repy': 0,
-                'hloubetin': 0,
-                'lochkov': 0,
-                'lipence': 0,
-                'liboc': 0,
-                'josefov': 0,
-                'hrdlorezy': 0,
-                'slivenec': 0,
-                'sterboholy': 0,
-                'praha_7': 0,
-                'hodkovicky': 0,
-                'cholupice': 0,
-                'miskovice': 0,
-                'uhrineves': 0,
-                'stresovice': 0,
-                'dubec': 0,
-                'lhotka': 0,
-                'velka': 0,
-                'pisnice': 0,
-                'klanovice': 0,
-                'dablice': 0,
-                'vinor': 0,
-                'holyne': 0,
-                'praha_10': 0,
-                'libus': 0,
-                'hajek': 0,
-                'praha_2': 0,
-                'reporyje': 0,
-                'seberov': 0,
-                'bechovice': 0,
-                'kolodeje': 0,
-                'hradcany': 0,
-                'praha_6': 0,
-                'tocna': 0,
-                'kralovice': 0,
-                'kunratice': 0,
-                'praha_11': 0,
-                'dolni_brezany': 0,
-                'size': 0,
-                'energy_level': None,
-                'floor': 0,
-                'Ve velmi dobrem stavu': 0,
-                'V dobrem stavu': 0,
-                'Ve spatnem stavu': 0,
-                'Ve vystavbe': 0,
-                'Projekt': 0,
-                'Novostavba': 0,
-                'K demolici': 0,
-                'Pred rekonstrukci': 0,
-                'Po rekonstrukci': 0,
-                'V rekonstrukci': 0,
-                'Smisena': 0,
-                'Panelova': 0,
-                'Cihlova': 0,
-                'Skeletova': 0,
-                'Modularni': 0,
-                'Kamenna': 0,
-                'Drevostavba': 0,
-                'Balkon': 0,
-                'Lodzie': 0,
-                'Zahrada': 0,
-                'Terasa': 0,
-                'Parkovaci stani': 0,
-                'Vytah': 0,
-                'Sklep': 0,
-                'Garaz': 0,
-                'Zarizeno': 0,
-                'Nearizeno': 0,
-                'Castecne zarizeno': 0,
-                'Bezbarierovy pristup': 0,
-                'bus': 0,
-                'tram': 0,
-                'metro': 0,
-                'train': 0,
-                'school': 0,
-                'kindergarden': 0,
-                'small_store': 0,
-                'big_store': 0,
-                'pub': 0,
-                'restaurant': 0,
-                'post_office': 0,
-                'atm': 0,
-                'nature_place': 0,
-                'pharmacy': 0,
-                'sports': 0
-            }
+
 # data row test
 
-data.append(default_row) #data[0][feature]
-url = links[0]
-page = urlopen(url)
-html = page.read().decode("utf-8")
-soup = BeautifulSoup(html, "html.parser")
+def read_data(links):
+    data = []
+    row = 0
+    for link in links:
+        try:
+            print("reading: ", link)
+            page = urlopen(link)
+            html = page.read().decode("utf-8")
+            soup = BeautifulSoup(html, "html.parser")
+            # data.append(default_row) #data[0][feature]
+            default_row = {'price': 0,
+                            '1+1': 0,
+                            '1+kk': 0,
+                            '2+1': 0,
+                            '2+kk': 0,
+                            '3+1': 0,
+                            '3+kk': 0,
+                            '4+1': 0,
+                            '4+kk': 0,
+                            '5+1': 0,
+                            '5+kk': 0,
+                            '6-a-vice': 0,
+                            'atypicky': 0,
+                            'chodov': 0,
+                            'hlubocepy': 0,
+                            'smichov': 0,
+                            'vysocany': 0,
+                            'zizkov': 0,
+                            'vinohrady': 0,
+                            'modrany': 0,
+                            'nove': 0,
+                            'liben': 0,
+                            'vrsovice': 0,
+                            'cakovice': 0,
+                            'krc': 0,
+                            'nusle': 0,
+                            'radlice': 0,
+                            'satalice': 0,
+                            'haje': 0,
+                            'horni': 0,
+                            'branik': 0,
+                            'holesovice': 0,
+                            'dolni': 0,
+                            'stodulky': 0,
+                            'mala': 0,
+                            'praha_1': 0,
+                            'kosire': 0,
+                            'troja': 0,
+                            'brevnov': 0,
+                            'praha_8': 0,
+                            'kyje': 0,
+                            'vysehrad': 0,
+                            'karlin': 0,
+                            'kbely': 0,
+                            'pitkovice': 0,
+                            'sobin': 0,
+                            'cerny': 0,
+                            'treboradice': 0,
+                            'cimice': 0,
+                            'strizkov': 0,
+                            'praha_9': 0,
+                            'letnany': 0,
+                            'kobylisy': 0,
+                            'dejvice': 0,
+                            'praha_14': 0,
+                            'bubenec': 0,
+                            'radotin': 0,
+                            'ujezd': 0,
+                            'suchdol': 0,
+                            'hostavice': 0,
+                            'praha_5': 0,
+                            'podoli': 0,
+                            'zlicin': 0,
+                            'veleslavin': 0,
+                            'michle': 0,
+                            'hostivar': 0,
+                            'strasnice': 0,
+                            'petrovice': 0,
+                            'praha_4': 0,
+                            'zbraslav': 0,
+                            'stare': 0,
+                            'bohnice': 0,
+                            'kolovraty': 0,
+                            'kamyk': 0,
+                            'trebonice': 0,
+                            'zabehlice': 0,
+                            'ruzyne': 0,
+                            'jinonice': 0,
+                            'malesice': 0,
+                            'motol': 0,
+                            'prosek': 0,
+                            'vokovice': 0,
+                            'repy': 0,
+                            'hloubetin': 0,
+                            'lochkov': 0,
+                            'lipence': 0,
+                            'liboc': 0,
+                            'josefov': 0,
+                            'hrdlorezy': 0,
+                            'slivenec': 0,
+                            'sterboholy': 0,
+                            'praha_7': 0,
+                            'hodkovicky': 0,
+                            'cholupice': 0,
+                            'miskovice': 0,
+                            'uhrineves': 0,
+                            'stresovice': 0,
+                            'dubec': 0,
+                            'lhotka': 0,
+                            'velka': 0,
+                            'pisnice': 0,
+                            'klanovice': 0,
+                            'dablice': 0,
+                            'vinor': 0,
+                            'holyne': 0,
+                            'praha_10': 0,
+                            'libus': 0,
+                            'hajek': 0,
+                            'praha_2': 0,
+                            'reporyje': 0,
+                            'seberov': 0,
+                            'bechovice': 0,
+                            'kolodeje': 0,
+                            'hradcany': 0,
+                            'praha_6': 0,
+                            'tocna': 0,
+                            'kralovice': 0,
+                            'kunratice': 0,
+                            'praha_11': 0,
+                            'dolni_brezany': 0,
+                            'size': 0,
+                            'price_per_m2': 0,
+                            'energy_level': None,
+                            'floor': None,
+                            'Ve velmi dobrem stavu': 0,
+                            'V dobrem stavu': 0,
+                            'Ve spatnem stavu': 0,
+                            'Ve vystavbe': 0,
+                            'Projekt': 0,
+                            'Novostavba': 0,
+                            'K demolici': 0,
+                            'Pred rekonstrukci': 0,
+                            'Po rekonstrukci': 0,
+                            'V rekonstrukci': 0,
+                            'Smisena': 0,
+                            'Panelova': 0,
+                            'Cihlova': 0,
+                            'Skeletova': 0,
+                            'Modularni': 0,
+                            'Kamenna': 0,
+                            'Drevostavba': 0,
+                            'Balkon': 0,
+                            'Lodzie': 0,
+                            'Zahrada': 0,
+                            'Terasa': 0,
+                            'Parkovaci stani': 0,
+                            'Vytah': 0,
+                            'Sklep': 0,
+                            'Garaz': 0,
+                            'Zarizeno': 0,
+                            'Nezarizeno': 0,
+                            'Castecne zarizeno': 0,
+                            'Bezbarierovy pristup': 0,
+                            'bus': 0,
+                            'tram': 0,
+                            'metro': 0,
+                            'train': 0,
+                            'school': 0,
+                            'kindergarden': 0,
+                            'small_store': 0,
+                            'big_store': 0,
+                            'pub': 0,
+                            'restaurant': 0,
+                            'post_office': 0,
+                            'atm': 0,
+                            'nature_place': 0,
+                            'pharmacy': 0,
+                            'sports': 0
+                            }
 
-price = get_price(soup)
-data[0]['price'] = price
 
-rooms = get_rooms(url)
-data[0][rooms] = 1
+            price = get_price(soup)
+            default_row['price'] = price
+            
+            rooms = get_rooms(link)
+            default_row[rooms] = 1
 
-location = get_location(url)
-data[0][location] = 1
+            location = get_location(link)
+            default_row[location] = 1
 
-size = get_size(soup)
-data[0]['size'] = size
+            size = get_size(soup)
+            default_row['size'] = size
 
-energy_level = get_energy_level(soup)
-data[0]['energy_level'] = energy_level
+            price_per_m2 = get_price_per_m2(soup)
+            default_row['price_per_m2'] = price_per_m2  
 
-floor = get_floor(soup)
-data[0]['floor'] = floor
+            energy_level = get_energy_level(soup)
+            default_row['energy_level'] = energy_level
 
-condition = get_condition(soup)
-data[0][condition] = 1
+            floor = get_floor(soup)
+            default_row['floor'] = floor
 
-build_type = get_build_type(soup)
-data[0][build_type] = 1
+            condition = get_condition(soup)
+            default_row[condition] = 1
 
-features = get_features(soup)
-for feature in features:
-    data[0][feature] = 1
+            build_type = get_build_type(soup)
+            default_row[build_type] = 1
 
-bus = get_proximity(soup, "Bus MHD:")
-data[0]['bus'] = bus
-tram = get_proximity(soup, "Tram:")
-data[0]['tram'] = tram
-metro = get_proximity(soup, "Metro:")
-data[0]['metro'] = metro
-train = get_proximity(soup, "Vlak:")
-data[0]['train'] = train
-school = get_proximity(soup, "Skola:")
-data[0]['school'] = school
-kindergarden = get_proximity(soup, "Skolka:")
-data[0]['kindergarden'] = kindergarden
-small_store = get_proximity(soup, "Vecerka:")
-data[0]['small_store'] = small_store
-big_store = get_proximity(soup, "Obchod:")
-data[0]['big_store'] = big_store
-pub = get_proximity(soup, "Hospoda:")
-data[0]['pub'] = pub
-restaurant = get_proximity(soup, "Restaurace:")
-data[0]['restaurant'] = restaurant
-post_office = get_proximity(soup, "Posta:")
-data[0]['post_office'] = post_office
-atm = get_proximity(soup, "Bankomat:")
-data[0]['atm'] = atm
-nature_place = get_proximity(soup, "Prirodni zajimavost:")
-data[0]['nature_place'] = nature_place
-pharmacy = get_proximity(soup, "Lekarna:")
-data[0]['pharmacy'] = pharmacy
-sports = get_proximity(soup, "Sportoviste:")
-data[0]['sports'] = sports
-# print(price, rooms, location, size, energy_level, floor, condition, build_type, features, bus, tram, metro, train, school, kindergarden, small_store, big_store, pub, restaurant, post_office, atm, nature_place, pharmacy, sports)
-print(data[0])
+            features = get_features(soup)
+            for feature in features:
+                default_row[feature] = 1
+
+            bus = get_proximity(soup, "Bus MHD:")
+            default_row['bus'] = bus
+            tram = get_proximity(soup, "Tram:")
+            default_row['tram'] = tram
+            metro = get_proximity(soup, "Metro:")
+            default_row['metro'] = metro
+            train = get_proximity(soup, "Vlak:")
+            default_row['train'] = train
+            school = get_proximity(soup, "Skola:")
+            default_row['school'] = school
+            kindergarden = get_proximity(soup, "Skolka:")
+            default_row['kindergarden'] = kindergarden
+            small_store = get_proximity(soup, "Vecerka:")
+            default_row['small_store'] = small_store
+            big_store = get_proximity(soup, "Obchod:")
+            default_row['big_store'] = big_store
+            pub = get_proximity(soup, "Hospoda:")
+            default_row['pub'] = pub
+            restaurant = get_proximity(soup, "Restaurace:")
+            default_row['restaurant'] = restaurant
+            post_office = get_proximity(soup, "Posta:")
+            default_row['post_office'] = post_office
+            atm = get_proximity(soup, "Bankomat:")
+            default_row['atm'] = atm
+            nature_place = get_proximity(soup, "Prirodni zajimavost:")
+            default_row['nature_place'] = nature_place
+            pharmacy = get_proximity(soup, "Lekarna:")
+            default_row['pharmacy'] = pharmacy
+            sports = get_proximity(soup, "Sportoviste:")
+            default_row['sports'] = sports
+
+            data.append(default_row)
+
+            print("row done: ", row, "price:", price)
+            print("from data:", data[row]['price'])
+            print('---------------------------------')
+            row += 1
+
+        except ValueError as e:
+            print(f"ValueError at row {row}: {e}")
+            # data[row] = default_row
+            print('---------------------------------')
+            continue
+        except HTTPError as e:
+            if e.code == 404:
+                print(f"404 Not Found at row {row}: {link}")
+            # data[row] = default_row
+            print('---------------------------------')
+            continue
+        
+    return data
+
+links_test = links[:10]
+data_test = read_data(links_test)
+# print(data_test)
+
+with open('apt_data_first10_test.csv', 'w', newline='') as csvfile:
+    fieldnames = ['price',
+                '1+1',
+                '1+kk',
+                '2+1',
+                '2+kk',
+                '3+1',
+                '3+kk',
+                '4+1',
+                '4+kk',
+                '5+1',
+                '5+kk',
+                '6-a-vice',
+                'atypicky',
+                'chodov',
+                'hlubocepy',
+                'smichov',
+                'vysocany',
+                'zizkov',
+                'vinohrady',
+                'modrany',
+                'nove',
+                'liben',
+                'vrsovice',
+                'cakovice',
+                'krc',
+                'nusle',
+                'radlice',
+                'satalice',
+                'haje',
+                'horni',
+                'branik',
+                'holesovice',
+                'dolni',
+                'stodulky',
+                'mala',
+                'praha_1',
+                'kosire',
+                'troja',
+                'brevnov',
+                'praha_8',
+                'kyje',
+                'vysehrad',
+                'karlin',
+                'kbely',
+                'pitkovice',
+                'sobin',
+                'cerny',
+                'treboradice',
+                'cimice',
+                'strizkov',
+                'praha_9',
+                'letnany',
+                'kobylisy',
+                'dejvice',
+                'praha_14',
+                'bubenec',
+                'radotin',
+                'ujezd',
+                'suchdol',
+                'hostavice',
+                'praha_5',
+                'podoli',
+                'zlicin',
+                'veleslavin',
+                'michle',
+                'hostivar',
+                'strasnice',
+                'petrovice',
+                'praha_4',
+                'zbraslav',
+                'stare',
+                'bohnice',
+                'kolovraty',
+                'kamyk',
+                'trebonice',
+                'zabehlice',
+                'ruzyne',
+                'jinonice',
+                'malesice',
+                'motol',
+                'prosek',
+                'vokovice',
+                'repy',
+                'hloubetin',
+                'lochkov',
+                'lipence',
+                'liboc',
+                'josefov',
+                'hrdlorezy',
+                'slivenec',
+                'sterboholy',
+                'praha_7',
+                'hodkovicky',
+                'cholupice',
+                'miskovice',
+                'uhrineves',
+                'stresovice',
+                'dubec',
+                'lhotka',
+                'velka',
+                'pisnice',
+                'klanovice',
+                'dablice',
+                'vinor',
+                'holyne',
+                'praha_10',
+                'libus',
+                'hajek',
+                'praha_2',
+                'reporyje',
+                'seberov',
+                'bechovice',
+                'kolodeje',
+                'hradcany',
+                'praha_6',
+                'tocna',
+                'kralovice',
+                'kunratice',
+                'praha_11',
+                'dolni_brezany',
+                'size',
+                'price_per_m2',
+                'energy_level',
+                'floor',
+                'Ve velmi dobrem stavu',
+                'V dobrem stavu',
+                'Ve spatnem stavu',
+                'Ve vystavbe',
+                'Projekt',
+                'Novostavba',
+                'K demolici',
+                'Pred rekonstrukci',
+                'Po rekonstrukci',
+                'V rekonstrukci',
+                'Smisena',
+                'Panelova',
+                'Cihlova',
+                'Skeletova',
+                'Modularni',
+                'Kamenna',
+                'Drevostavba',
+                'Balkon',
+                'Lodzie',
+                'Zahrada',
+                'Terasa',
+                'Parkovaci stani',
+                'Vytah',
+                'Sklep',
+                'Garaz',
+                'Zarizeno',
+                'Nezarizeno',
+                'Castecne zarizeno',
+                'Bezbarierovy pristup',
+                'bus',
+                'tram',
+                'metro',
+                'train',
+                'school',
+                'kindergarden',
+                'small_store',
+                'big_store',
+                'pub',
+                'restaurant',
+                'post_office',
+                'atm',
+                'nature_place',
+                'pharmacy',
+                'sports'
+            ]
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerows(data_test)
+
+
+
+
+
+
+# data.append(default_row) #data[0][feature]
+# url = links[8]
+# page = urlopen(url)
+# html = page.read().decode("utf-8")
+# soup = BeautifulSoup(html, "html.parser")
+# print(url)
+
+# price = get_price(soup)
+# data[0]['price'] = price
+
+# rooms = get_rooms(url)
+# data[0][rooms] = 1
+
+# location = get_location(url)
+# data[0][location] = 1
+
+# size = get_size(soup)
+# data[0]['size'] = size
+
+# price_per_m2 = get_price_per_m2(soup)
+# data[0]['price_per_m2'] = price_per_m2  
+
+# energy_level = get_energy_level(soup)
+# data[0]['energy_level'] = energy_level
+
+# floor = get_floor(soup)
+# data[0]['floor'] = floor
+
+# condition = get_condition(soup)
+# data[0][condition] = 1
+
+# build_type = get_build_type(soup)
+# data[0][build_type] = 1
+
+# features = get_features(soup)
+# for feature in features:
+#     data[0][feature] = 1
+
+# bus = get_proximity(soup, "Bus MHD:")
+# data[0]['bus'] = bus
+# tram = get_proximity(soup, "Tram:")
+# data[0]['tram'] = tram
+# metro = get_proximity(soup, "Metro:")
+# data[0]['metro'] = metro
+# train = get_proximity(soup, "Vlak:")
+# data[0]['train'] = train
+# school = get_proximity(soup, "Skola:")
+# data[0]['school'] = school
+# kindergarden = get_proximity(soup, "Skolka:")
+# data[0]['kindergarden'] = kindergarden
+# small_store = get_proximity(soup, "Vecerka:")
+# data[0]['small_store'] = small_store
+# big_store = get_proximity(soup, "Obchod:")
+# data[0]['big_store'] = big_store
+# pub = get_proximity(soup, "Hospoda:")
+# data[0]['pub'] = pub
+# restaurant = get_proximity(soup, "Restaurace:")
+# data[0]['restaurant'] = restaurant
+# post_office = get_proximity(soup, "Posta:")
+# data[0]['post_office'] = post_office
+# atm = get_proximity(soup, "Bankomat:")
+# data[0]['atm'] = atm
+# nature_place = get_proximity(soup, "Prirodni zajimavost:")
+# data[0]['nature_place'] = nature_place
+# pharmacy = get_proximity(soup, "Lekarna:")
+# data[0]['pharmacy'] = pharmacy
+# sports = get_proximity(soup, "Sportoviste:")
+# data[0]['sports'] = sports
+
